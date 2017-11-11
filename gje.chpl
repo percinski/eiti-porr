@@ -76,8 +76,19 @@ writeln("Backward substitution...");
 // variables vector declaration
 var x : [1..N] real;
 
+// calculating last unkown
 x[N]=b[N]/A[N,N];
-for i in {0..N-1}{
-	var k : int = N-1-i; 	// iterating from last row
-	writeln(k);
+
+// calculating others unknowns
+for i in {1..N-1}{
+	var k : int = N-i; 	// iterating from last row
+	x[k]=b[k];
+	for j in {k+1..N}{
+		x[k]=x[k]-A[k,j]*x[j];
+	}
+	x[k]=x[k]/A[k,k];
 }
+
+// print vector x;
+writeln("Vector x:");
+writeln(x);	
