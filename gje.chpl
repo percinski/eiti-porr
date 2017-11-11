@@ -2,51 +2,64 @@
  * using Gauss-Jordan elimination algorithm
  * 
  * author: perciax
- * created: 
+ * created: 2017-11-11
+ * 
+ * Solves equation set definied as Ax=b, where:
+ * 	A - NxN matrix,
+ *	b - N-size vector,
+ * 	x - unkown N-size vector
+ *
+ * Reads problem definition from file with structure:
+ * 	N
+ *	a11 a12 ... a1N b1
+ *	a21 a22 ... a2N b2
+ *	.   .   ... .   .
+ *	aN1 aN2 ... aNN bN
+ *
+ * Compiling: chpl -o gje gje.chpl
+ * Running: ./gje --fname="path-to-file" 
  */
+
+// default name of file with task definition
+config const fname = "data/3x4.txt";
 
 // print on screen
 writeln("=== Gauss-Jordan elimination ===");
 writeln("Solving equations set: Ax=b");
 
-// equations and variables number
-const N: int = 3;
+// open reader
+var reader = open(fname, iomode.r).reader();
 
-// domain (matrix A indexing) declaration 
-var Adomain: domain(2) = {1..N,1..N};
+// read N (variables / equation number)
+var N: int;
+reader.read(N);
+writeln("N = " + N);
 
-// matrix A declaration (array)
-var A: [Adomain] real;
+// read matrix A as array
+var array: [1..N, 1..N+1] real;
+reader.read(array);
+reader.close();
 
-A[1,1] = 1;
-A[1,2] = 1;
-A[1,3] = 1;
-A[2,1] = 2;
-A[2,2] = 3;
-A[2,3] = 7;
-A[3,1] = 1;
-A[3,2] = 3;
-A[3,3] = -2;
+writeln("Array from file " + fname + ":");
+writeln(array);
+writeln();
 
+// take last column of array read as vector b
+var b: [1..N] real;
+b = array[1..N, N+1];
+writeln("Vector b: \n", b, "\n");
+
+// cut off last column from array read and save in A
+var A: [1..N, 1..N] real;
+A = array[1..N, 1..N];
+writeln("Matrix A: \n", A, "\n");
 // vector b declaration
-var b : [1..N] real = [3,0,17];
+//var b : [1..N] real = A[;
 
-//for i in Adomain.dim(1){
-//	for j in Adomain.dim(2){
-//		A[i,j] = 3;
-//	}
-//} 
 
-// print A matrix
-writeln("Matrix A; ");
-writeln(A);
-
-// print b vector
-writeln("Vector b:");
-writeln(b); 
+writeln("Algorithm starting...");
 
 // foward elimination
-writeln();
 writeln("Forward elimination...");
 
 for k in {1..N-1}{		// eliminating rows loop
@@ -71,9 +84,9 @@ writeln(b);
 
 // backward substitution
 writeln();
-writeln("Backward substitution...");
+writeln("Backward substitution... \n");
 
-// variables vector declaration
+// unknown vector declaration
 var x : [1..N] real;
 
 // calculating last unkown
@@ -89,6 +102,7 @@ for i in {1..N-1}{
 	x[k]=x[k]/A[k,k];
 }
 
+writeln("Algorrithm done... \n");
 // print vector x;
 writeln("Vector x:");
 writeln(x);	
