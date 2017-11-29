@@ -1,2 +1,5 @@
 # ignore autosaves
 *.save
+
+# ignore output (executable) files
+*.o
