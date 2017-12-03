@@ -12,6 +12,8 @@ typedef struct
   double mod;
 } lambdas_state;
 
+double x[1000];
+
 /* ------------------------------------------------------------------------- */
 /* Program solving local task of decomposed powell 20 problem using COBYLA solver
 /* Description and License of COBYLA in file cobyla2c/cobyla.h
@@ -20,9 +22,8 @@ int localtask(int _n, int _p, int _i, double _lambdai, double _lambdamod)
 {
   /* Local variables */
   int l;
-	int i, n, p, N; 
+  int i, n, p, N; 
   double rhoend, rhobeg;
-  double x[1000];
   int m; 
   int maxfun, message, rc;
   lambdas_state lambdas;
@@ -44,13 +45,13 @@ int localtask(int _n, int _p, int _i, double _lambdai, double _lambdamod)
   lambdas.mod = _lambdamod;
 
   /* Printing */
-  fprintf(stderr, "Number of all variables: n = %d \n", n);
-  fprintf(stderr, "Number of subvectors: p = %d \n", p);
-  fprintf(stderr, "Number of current subvector: i = %d \n", i);
-  fprintf(stderr, "Number of variables in subvector: N = %d \n", N);
-  fprintf(stderr, "Lambda = %f \n", lambdas.i);
-  fprintf(stderr, "Lambda mod = %f \n", lambdas.mod);
-	
+  /* fprintf(stderr, "Number of all variables: n = %d \n", n); */
+  /* fprintf(stderr, "Number of subvectors: p = %d \n", p); */
+  /* fprintf(stderr, "Number of current subvector: i = %d \n", i); */
+  /* fprintf(stderr, "Number of variables in subvector: N = %d \n", N); */
+  /* fprintf(stderr, "Lambda = %f \n", lambdas.i); */
+  /* fprintf(stderr, "Lambda mod = %f \n", lambdas.mod); */
+
   /* number of constarints */
   m = 0;
   
@@ -66,13 +67,15 @@ int localtask(int _n, int _p, int _i, double _lambdai, double _lambdamod)
   rhoend = 1e-8;
 	
 	/* Message for COBYLA: 1 - printing just exit info and results */
-	message = 1;
+	message = 0;
 
 	/* Maximum number of function evaluations */      
   maxfun = 3500;
 
   rc = cobyla(N, m, x, rhobeg, rhoend, message, &maxfun, calcfc, &lambdas);
 
+  /* fprintf(stderr, "--------------------------------------------------------------- End of local task (i = %d)\n", i); */
+    
   return rc;
 }
 
@@ -101,4 +104,19 @@ int calcfc(int n, int m, double *x, double *f, double *con, void *state_)
 	
 	/* return */
   return 0;
+}
+
+double getArrayValByPtr(int i, double* val)
+{
+    //fprintf(stderr, "i = %d \n", i);
+    //fprintf(stderr, "x[i] = %f \n", x[i]);
+    *val=x[i];
+}
+
+void printArray(double* array, int size)
+{
+    for(int j=0; j<size; j++)
+    {
+      fprintf(stderr, "x[%d] = %f \n", j, x[j]);
+    }
 }
