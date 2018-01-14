@@ -34,6 +34,8 @@
 	config const debug: bool = true;
 	config const quiet: bool = false;
 	config const parallel: bool = false;
+    config const test: bool = false;        // config to set if you want to perform comparison of result 
+                                            // (parallel vs. straight foward)
 
 	config const time: string = "milliseconds";
 
@@ -114,36 +116,99 @@
 		}
 
 		t.clear(); // clear timer
-		t.start(); // start timer
-
 		// ================== SOLVING ====================================
 
-		// foward elimination
-		for k in {1..N}{		// eliminating rows loop
+        
+	    // unknown vector declaration
+	    var x : [1..N] real;        
 
-			if (parallel) then{ // use data parallelism (all cores by default)
+        if !test then {
+            t.start(); // start timer
 
-				forall i in 1..N do eliminate(i,k);
 
-			}else{ //compute straigth-foward - one by one
+		    // foward elimination
+		    for k in {1..N}{		// eliminating rows loop
 
-				for i in {1..N}{	// modified rows loop
-					eliminate(i,k);
-				}		
+			    if (parallel) then{ // use data parallelism (all cores by default)
+
+				    forall i in 1..N do eliminate(i,k);
+
+			    }else{ //compute straigth-foward - one by one
+
+				    for i in {1..N}{	// modified rows loop
+					    eliminate(i,k);
+				    }		
+			    }
+		    }
+
+		    // calculating unknowns
+		    for k in {1..N}{
+			    x[k]=b[k]/A[k,k];
+		    }
+
+            t.stop(); //stop timer
+
+        }else{
+
+            t.start(); // start timer
+
+            // PARALLEL
+            for k in {1..N}{		// eliminating rows loop
+			    forall i in 1..N do eliminate(i,k);
+            }
+            // unknown vector declaration
+		    var x_par : [1..N] real;
+
+		    // calculating unknowns
+		    for k in {1..N}{
+			    x_par[k]=b[k]/A[k,k];
+
 			}
-		}
 
-		// unknown vector declaration
-		var x : [1..N] real;
+            //writeln("x_par = \n", x_par);
+            t.stop(); //stop timer
+            writeln("Time elapsed (parallel solving): ", t.elapsed(TimeUnits.milliseconds), " milliseconds");
+            t.clear();
 
-		// calculating unknowns
-		for k in {1..N}{
-			x[k]=b[k]/A[k,k];
-		}
+            t.start();
+
+            
+            // STRAIGHT-FOWARD
+
+		    for k in {1..N}{		// eliminating rows loop
+			    for i in {1..N}{	// modified rows loop
+					    eliminate(i,k);
+				}
+            }
+            // unknown vector declaration
+		    var x_str : [1..N] real;
+
+		    // calculating unknowns
+		    for k in {1..N}{
+			    x_str[k]=b[k]/A[k,k];
+			}
+
+            //writeln("x_str = \n", x_str);
+
+            t.stop(); //stop timer
+            writeln("Time elapsed (straight solving): ", t.elapsed(TimeUnits.milliseconds), " milliseconds");
+            t.clear();
+            
+            var mse : real = 0.0;
+            
+            for i in {1..N}{
+                mse = mse + (x_par[i]-x_str[i])*(x_par[i]-x_str[i]);
+            }
+
+            writeln("mse = ", mse);
+            exit();
+
+            
+        }
 
 		// =================================================================
 
-		t.stop(); //stop timer
+		
 
 		if debug && !quiet then{
 			// print A matrix
